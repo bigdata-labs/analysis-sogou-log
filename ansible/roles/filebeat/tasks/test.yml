@@ -1,0 +1,10 @@
+---
+- name: mkdir nginx folder
+  file: path="/var/log/sogou/" state=directory mode="0666"
+  tags:
+    - filebeattest
+
+- name: unarchive access.log
+  unarchive: src="access.log.zip" dest="/var/log/nginx/" mode="0666"
+  tags:
+    - filebeattest

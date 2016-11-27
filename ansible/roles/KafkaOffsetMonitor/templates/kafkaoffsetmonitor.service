@@ -1,0 +1,14 @@
+[Unit]
+Description=KafkaOffsetMonitor
+After=network.target
+
+[Service]
+#Type=forking
+User={{KafkaOffsetMonitor_user}}
+Group={{KafkaOffsetMonitor_group}}
+Environment=JAVA_HOME={{JAVA_HOME}}
+ExecStart=/bin/sh -c "exec {{JAVA_HOME}}/bin/java -cp {{KafkaOffsetMonitor_jar_path}} com.quantifind.kafka.offsetapp.OffsetGetterWeb --zk {{zookeeper_connect}} --port {{KafkaOffsetMonitor_web_port}} --refresh 10.seconds --retain 2.days"
+#Restart=on-abort"
+
+[Install]
+WantedBy=multi-user.target

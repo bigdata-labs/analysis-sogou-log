@@ -1,0 +1,165 @@
+---
+
+- name: create spark group
+  group:
+    name: "{{spark_group}}"
+    system: yes
+  tags:
+    - spark
+
+- name: create spark user
+  user:
+    name: "{{spark_user}}"
+    group: "{{spark_group}}"
+    system: yes
+  tags:
+    - spark
+
+- name: create .ssh folder
+  file:
+    path: "{{spark_user_home}}/.ssh"
+    state: directory
+    mode: 0700
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+  tags:
+    - spark
+
+- name: copy ssh key
+  copy:
+    src: "{{item}}"
+    dest: "{{spark_user_home}}/.ssh"
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    mode: 0600
+  with_items:
+    - id_rsa
+    - id_rsa.pub
+    - authorized_keys
+  tags:
+    - spark
+
+# - name: append auth
+
+
+- stat:
+    path: /tmp/spark.tgz
+  register: spark_package
+  tags:
+    - spark
+
+
+- name: download spark from "{{ spark_download_url }}"
+  get_url:
+    url: "{{spark_download_url}}"
+    dest: /tmp/spark.tgz
+  when: spark_package.stat.exists == False
+  tags:
+    - spark
+
+
+# - name: create spark home "{{spark_home}}"
+#   file:
+#     path: "{{spark_home}}"
+#     state: directory
+#     owner: "{{ spark_user }}"
+#     group: "{{ spark_group }}"
+#   tags:
+#     - spark
+
+
+- name: unarchive spark
+  unarchive:
+    src: "/tmp/spark.tgz"
+    dest: "{{ spark_user_home }}"
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    copy: no
+  tags:
+    - spark
+
+- name: link spark directory "{{spark_user_home}}/spark-{{spark_version}}-bin-hadoop{{hadoop_version}}"
+  file:
+    dest: "{{spark_home}}"
+    src: "{{spark_user_home}}/spark-{{spark_version}}-bin-hadoop{{hadoop_version}}"
+    state: link
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+  tags:
+    - spark
+
+- name: create spark log directory
+  file:
+    path: "{{spark_log_directory}}"
+    state: directory
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+  tags:
+    - spark
+
+- name: config spark
+  template:
+    src: "{{item}}"
+    dest: "{{spark_home}}/conf/"
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+  with_items:
+    - ./conf/slaves
+    - ./conf/spark-env.sh
+  tags:
+    - spark
+
+- name: config spark-master.service
+  template:
+    src: spark-master.service
+    dest: /etc/systemd/system/
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    mode: 0700
+  when: spark_is_master is defined and  spark_is_master == "true"
+  tags:
+    - spark
+
+- name: start-master when spark_is_master == true
+  service:
+    name: spark-master
+    state: restarted
+    # enable: true
+  when: spark_is_master is defined and  spark_is_master == "true"
+  tags:
+    - spark
+
+- name: config spark-slave.service
+  template:
+    src: spark-slave.service
+    dest: /etc/systemd/system/
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+    mode: 0700
+  when: spark_is_slave is defined and spark_is_slave == "true"
+  tags:
+    - spark
+
+- name: start-slave when spark_is_slave == true
+  service:
+    name: spark-slave
+    state: restarted
+    # enable: true
+  when: spark_is_slave is defined and spark_is_slave == "true"
+  tags:
+    - spark
+
+# - lineinfile: dest='/home/{{user}}/.bashrc' line='export SPARK_HOME=/usr/local/spark' state=present
+# - lineinfile: dest='/home/{{user}}/.bashrc' line='export PATH="$PATH:$SPARK_HOME/bin"' state=present
+
+#
+# - name: config spark
+#   template:
+#     src: "{{item}}"
+#     dest: "/usr/local/spark"
+#     owner: {{ spark_user }}
+#     group: {{ spark_group }}
+#
+#
+# - name: mkdir spark log
+#   file: path=/var/log/spark state=directory mode=0755  owner={{ user }} group={{ group }}

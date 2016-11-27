@@ -1,0 +1,22 @@
+---
+# defaults file for filebeat
+filebeat_deb_url: "http://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.0.0-amd64.deb"
+filebeat_config:
+  filebeat:
+    prospectors:
+      - paths:
+          - /var/log/sogou/*.log
+        input_type: log
+  output.kafka:
+    # initial brokers for reading cluster metadata
+    hosts: "{{ kafka_hosts }}"
+    # message topic selection + partitioning
+    topic: 'sogou'
+    partition.round_robin:
+      reachable_only: false
+    required_acks: 1
+    compression: gzip
+    max_message_bytes: 1000000
+  logging:
+    to_syslog: true
+    level: error

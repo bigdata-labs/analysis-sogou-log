@@ -1,0 +1,45 @@
+---
+### JVM
+JAVA_HOME: /usr/lib/jvm/java
+### zookeeper
+zk1_host: 192.168.7.151
+zk2_host: 192.168.7.152
+zk3_host: 192.168.7.153
+kafka1_host: 192.168.7.151
+zk_hosts:
+  - "zk1:2181"
+  - "zk2:2181"
+  - "zk3:2181"
+zookeeper_connect: "{{ zk_hosts | join(',') }}"
+###spark hadoop
+spark_version: 2.0.1
+spark_eventLog_dir: /tmp
+spark_master_hostname: 192.168.7.152
+spark_master_port: 7077
+spark_master_host_port: "spark://{{spark_master_hostname}}:{{spark_master_port}}"
+spark_slaves: |
+  nodelab3
+spark_master_ip: 192.168.7.152
+spark_slave1_ip: 192.168.7.153
+
+spark_user: spark
+spark_group: spark
+spark_user_home: "/home/{{spark_user}}"
+spark_home: "{{spark_user_home}}/spark"
+spark_log_directory: "{{spark_home}}/log"
+
+
+
+hadoop_version: 2.6
+
+### kafka
+kafka_hosts: ["kafka1:9092"]
+
+###common
+hosts: |
+  {{spark_master_ip}} nodelab2
+  {{spark_slave1_ip}} nodelab3
+  {{ kafka1_host }} kafka1
+  {{ zk1_host }} zk1
+  {{ zk2_host }} zk2
+  {{ zk3_host }} zk3

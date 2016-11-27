@@ -1,0 +1,37 @@
+---
+# tasks file for KafkaOffsetMonitor
+- group: name={{KafkaOffsetMonitor_group}} system=yes
+  tags:
+    - kafka
+
+- user: name={{KafkaOffsetMonitor_user}} group={{KafkaOffsetMonitor_group}} system=yes
+  tags:
+    - kafka
+
+- stat: path="{{KafkaOffsetMonitor_jar_path}}"
+  register: KafkaOffsetMonitor_jar
+
+- name: download KafkaOffsetMonitor "{{KafkaOffsetMonitor_download_url}}"
+  get_url:
+    url: "{{KafkaOffsetMonitor_download_url}}"
+    dest: "{{KafkaOffsetMonitor_home}}/KafkaOffsetMonitor.jar"
+    owner: "{{KafkaOffsetMonitor_user}}"
+    group: "{{KafkaOffsetMonitor_group}}"
+    mode: ugo=rx
+  when: KafkaOffsetMonitor_jar.stat.exists == False
+
+- name: template KafkaOffsetMonitor service
+  template:
+    src: kafkaoffsetmonitor.service
+    dest: /etc/systemd/system
+    owner: "{{KafkaOffsetMonitor_user}}"
+    group: "{{KafkaOffsetMonitor_group}}"
+
+- name: reload systemd
+  shell: "systemctl daemon-reload"
+
+- name: start KafkaOffsetMonitor
+  service:
+    name: kafkaoffsetmonitor
+    state: restarted
+    enabled: yes

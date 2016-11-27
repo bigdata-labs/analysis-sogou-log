@@ -1,0 +1,66 @@
+---
+
+# Needed to ensure some services start properly
+- name: Set hostname
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    line: "127.0.0.1 {{ ansible_hostname }}"
+  notify:
+    - restart kafka
+  tags:
+    - kafka
+
+
+
+- name: Create log4j.properties
+  become: yes
+  become_user: "root"
+  template:
+    dest: "/home/{{ kafka.user }}/etc/log4j.properties"
+    mode: 0644
+    src: log4j.properties.j2
+    owner: "{{ kafka.user }}"
+    group: "{{ kafka.group }}"
+  notify:
+    - restart kafka
+  tags:
+    - kafka
+
+- name: Create server.properties
+  become: yes
+  become_user: "root"
+  template:
+    dest: "{{ kafka.conf_dir }}/server.properties"
+    mode: 0640
+    src: server.properties.j2
+    owner: "{{ kafka.user }}"
+    group: "{{ kafka.group }}"
+  notify:
+    - restart kafka
+  tags:
+    - kafka
+
+- name: "Create the kafka systemd service file"
+  template: src="kafka.service" dest=/etc/systemd/system/kafka.service owner={{ kafka.user }} group={{ kafka.group }} mode=0644
+  notify:
+    - restart kafka
+  tags:
+    - kafka
+
+- name: start and enable filebeat
+  service:
+    name: kafka.service
+    state: started
+    enabled: true
+  tags:
+    - kafka
+
+- name: Wait for Kafka port
+  wait_for:
+    host: "{{ kafka.ip }}"
+    port: "{{ kafka.port }}"
+    state: started
+    timeout: 120
+  tags:
+    - kafka

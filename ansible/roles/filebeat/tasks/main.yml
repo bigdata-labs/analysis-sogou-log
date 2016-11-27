@@ -1,0 +1,48 @@
+---
+# tasks file for filebeat
+- stat: path=/tmp/filebeat.deb
+  register: filebeatdeb
+  tags:
+    - filebeat
+
+- name: get filebeat
+  get_url: url="{{ filebeat_deb_url }}" dest="/tmp/filebeat.deb" validate_certs=no
+  when: filebeatdeb.stat.exists == False
+  tags:
+    - filebeat
+    - install
+
+- name: install filebeat
+  apt: deb="/tmp/filebeat.deb" allow_unauthenticated=yes state=present cache_valid_time=72000
+  tags:
+    - filebeat
+    - install
+
+- name: config filebeat
+  template: src="filebeat.yml" dest="/etc/filebeat/filebeat.yml"
+  tags:
+    - filebeat
+    - config
+  notify:
+    - restart filebeat
+
+- name: flush handlers to prevent start then restart
+  meta: flush_handlers
+  tags:
+    - install
+    - filebeat
+    - config
+
+- name: start and enable filebeat
+  service:
+    name: filebeat
+    state: started
+    enabled: true
+  tags:
+    - install
+    - filebeat
+    - config
+#
+# - include: "./test.yml"
+#   tags:
+#     - filebeat

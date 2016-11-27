@@ -1,0 +1,57 @@
+---
+- hosts: spark_slaves
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  vars:
+    isUseWordcountFile: "true"
+  tasks:
+    - name: copy wordcount.txt
+      copy:
+        src: "./files/wordcount.txt"
+        dest: "{{spark_home}}/wordcount.txt"
+        owner: "{{spark_user}}"
+        group: "{{spark_group}}"
+        force: true
+      when: isUseWordcountFile == "true"
+
+    - name: copy jar to spark
+      copy:
+        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT.jar"
+        dest: "{{spark_home}}/sogou-2.0-SNAPSHOT.jar"
+        owner: "{{spark_user}}"
+        group: "{{spark_group}}"
+        force: true
+
+    - name: copy dependencies jars to spark
+      copy:
+        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        dest: "{{spark_home}}/jars/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        owner: "{{spark_user}}"
+        group: "{{spark_group}}"
+
+- hosts: nodelab3
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  tasks:
+    - name: copy jar to spark
+      copy:
+        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT.jar"
+        dest: "{{spark_home}}/sogou-2.0-SNAPSHOT.jar"
+        owner: "{{spark_user}}"
+        group: "{{spark_group}}"
+        force: true
+
+    - name: copy dependencies jars to spark
+      copy:
+        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        dest: "{{spark_home}}/jars/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        owner: "{{spark_user}}"
+        group: "{{spark_group}}"
+        force: true
+
+    - name: submit
+      become: true
+      become_user: "{{spark_user}}"
+      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SimpleApp --master {{spark_master_host_port}} --deploy-mode client --executor-memory 1G file://{{spark_home}}/sogou-2.0-SNAPSHOT.jar"

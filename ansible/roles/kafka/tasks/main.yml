@@ -1,0 +1,19 @@
+---
+
+- group: name={{kafka.group}} system=yes
+  tags:
+    - kafka
+
+- user: name={{kafka.user}} group={{kafka.group}} system=yes
+  tags:
+    - kafka
+
+- name: Install kafka
+  include: build.yml
+  tags:
+    - kafka
+
+- name: Install kafka
+  include: configure.yml
+  tags:
+    - kafka

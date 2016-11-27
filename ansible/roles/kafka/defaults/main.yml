@@ -1,0 +1,38 @@
+---
+kafka:
+  apache_mirror: http://apache.fayea.com
+  auto_create_topics: "true"
+  install_dir: /home/kafka/kafka
+  conf_dir: /home/kafka/etc
+  data_dir: /home/kafka/data
+  default_replication_factor: 1
+  group: "{{ user_group }}"
+  heap_opts: "-Xmx{{ (ansible_memtotal_mb / 2) | int }}m -Xms{{ (ansible_memtotal_mb / 2) | int }}m"
+  id: 1
+  listeners: "plaintext://:9092"
+  port: 9092
+  ip: "{{ ip }}"
+  hostname: "{{ ip }}"
+  brokerport: "9092"
+  jmx_port: 9999
+  log_cleanup_interval_mins: 1
+  log_dir: /home/kafka/log
+  log_flush_interval_messages: 10000
+  log_flush_interval_ms: 1000
+  log_level: WARN
+  log_retention_bytes: 104857600  #100 M
+  log_retention_hours: 24
+  log_segment_bytes: 104857600
+  num_io_threads: 2
+  num_network_threads: 2
+  num_partitions: 1
+  socket_receive_buffer_bytes: 1048576
+  socket_request_max_bytes: 104857600
+  socket_send_buffer_bytes: 1048576
+  tarball_location: /home/kafka/tmp
+  upstart_conf: /etc/init/kafka.conf
+  user: "{{user}}"
+  version_kafka: "0.10.1.0"
+  version_scala: "2.11"
+  zookeeper_connection_timeout_ms: 1000000
+  zookeeper_connect: "{{ zk_hosts | join(',') }}"
