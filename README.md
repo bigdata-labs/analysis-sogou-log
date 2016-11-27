@@ -10,7 +10,7 @@
 
 2. put jdk-8u66-linux-x64.tar.gz into analysis-sogou-log/ansible/jdk8/files folder. Sorry for this, you must download jdk by yourself. :P
 
-3. cd kafka-spark-labs
+3. cd analysis-sogou-log
 
 4. vagrant up    
 
