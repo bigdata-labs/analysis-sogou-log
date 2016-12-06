@@ -14,7 +14,7 @@ zookeeper_connect: "{{ zk_hosts | join(',') }}"
 ###spark hadoop
 spark_version: 2.0.1
 spark_eventLog_dir: /tmp
-spark_master_hostname: 192.168.7.152
+spark_master_hostname: nodelab2
 spark_master_port: 7077
 spark_master_host_port: "spark://{{spark_master_hostname}}:{{spark_master_port}}"
 spark_slaves: |

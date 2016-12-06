@@ -77,4 +77,6 @@ export SPARK_LOG_DIR={{spark_log_directory}}
 export SPARK_MASTER_HOST={{spark_master_hostname}}
 export SPARK_WORKER_MEMORY=3G
 export JAVA_HOME={{JAVA_HOME}}
+export SPARK_WORKER_CORES=2
+
 #export SPARK_DAEMON_JAVA_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url={{ zk_hosts | join(',') }}"
