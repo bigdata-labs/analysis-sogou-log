@@ -5,6 +5,6 @@
     - filebeattest
 
 - name: unarchive access.log
-  unarchive: src="access.log.zip" dest="/var/log/nginx/" mode="0666"
+  unarchive: src="access.log.zip" dest="/var/log/sogou/" mode="0666"
   tags:
     - filebeattest

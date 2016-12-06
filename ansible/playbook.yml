@@ -32,8 +32,8 @@
   roles:
     - jdk8
     - kafka
-    - KafkaOffsetMonitor
-    - spark2   # for submitting spark application
+    # # - KafkaOffsetMonitor
+    - {role: "spark2", spark_is_slave: "true"}
 
 - hosts: nodelab2
   sudo: yes
@@ -43,7 +43,8 @@
     - filebeat
     - {role: "spark2", spark_is_master: "true"}
 
-- hosts: spark_slaves
+
+- hosts: nodelab3
   sudo: yes
   vars_files:
     - ./vars/base-env.yml

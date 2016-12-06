@@ -42,7 +42,7 @@
     - install
     - filebeat
     - config
-#
-# - include: "./test.yml"
-#   tags:
-#     - filebeat
+
+- include: "./test.yml"
+  tags:
+    - filebeat

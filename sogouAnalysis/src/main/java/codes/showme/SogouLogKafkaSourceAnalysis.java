@@ -34,7 +34,7 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
 
 
     public static void main(String[] args) throws ParseException, InterruptedException, IOException {
-        new SogouLogKafkaSourceAnalysis().execute(getSparkMasterUrl(args), getAppName(args));
+        new SogouLogKafkaSourceAnalysis().execute("spark://192.168.7.152:7077", "kafka");
     }
 
 
@@ -43,9 +43,15 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
     }
 
     public void execute(String sparkMasterUrl, String appName) throws InterruptedException, IOException {
+        System.out.println("-------------------------------------------------");
 
+        System.out.println(sparkMasterUrl);
+
+        System.out.println(appName);
 
         Properties props = new PropertiesConfig().getProperties();
+        System.out.println("zookeeper: " + props.getProperty("zookeeper.hosts"));
+        System.out.println("kafka.topic: " + props.getProperty("kafka.topic"));
 
         SparkConf _sparkConf = new SparkConf();
         if (StringUtils.isNotBlank(sparkMasterUrl)) {
@@ -55,21 +61,29 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
         if (StringUtils.isNotBlank(appName)) {
             _sparkConf.setAppName(appName);
         }
+        _sparkConf.set("spark.cores.max", "1");
 
-        JavaStreamingContext jsc = new JavaStreamingContext(_sparkConf, Durations.seconds(30));
+        JavaStreamingContext jsc = new JavaStreamingContext(_sparkConf, Durations.seconds(1));
         // Specify number of Receivers you need.
         int numberOfReceivers = 1;
+        System.out.println("=======================1");
 
         JavaDStream<MessageAndMetadata> unionStreams = ReceiverLauncher.launch(
                 jsc, props, numberOfReceivers, StorageLevel.MEMORY_ONLY());
+        unionStreams.print();
+        System.out.println("=======================2");
 
         //Get the Max offset from each RDD Partitions. Each RDD Partition belongs to One Kafka Partition
         JavaPairDStream<Integer, Iterable<Long>> partitonOffset = ProcessedOffsetManager
                 .getPartitionOffset(unionStreams);
+        partitonOffset.print();
+        System.out.println("=================    3");
 
         //Start Application Logic
         unionStreams.foreachRDD((rdd, v2) -> {
             List<MessageAndMetadata> rddList = rdd.collect();
+            System.out.println(" Number of records in this batch " + rddList.size());
+
             SearchRecord searchRecord = new SearchRecord();
             List<String> lines = Lists.newArrayList();
             for (MessageAndMetadata messageAndMetadata : rddList) {
@@ -77,16 +91,18 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
                 System.out.println(messageAndMetadata.getConsumer() + " -----  " + messageAndMetadata.getKey());
             }
 
-            System.out.println(" Number of records in this batch " + rddList.size());
+
             return;
         });
+        System.out.println("=================    4");
 
         //End Application Logic
 
         //Persists the Max Offset of given Kafka Partition to ZK
-        ProcessedOffsetManager.persists(partitonOffset, props);
+//        ProcessedOffsetManager.persists(partitonOffset, props);
         jsc.start();
         jsc.awaitTermination();
+        System.out.println("3------------------------------------------");
 
     }
 

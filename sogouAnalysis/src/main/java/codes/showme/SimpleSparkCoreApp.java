@@ -1,25 +1,13 @@
 package codes.showme;
 
 import codes.showme.config.PropertiesConfig;
-import com.google.common.collect.Lists;
-import consumer.kafka.MessageAndMetadata;
-import consumer.kafka.ProcessedOffsetManager;
-import consumer.kafka.ReceiverLauncher;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.storage.StorageLevel;
-import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
@@ -28,25 +16,24 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  *
  */
-public class SimpleApp implements Serializable {
+public class SimpleSparkCoreApp implements Serializable {
 
 
-    private static final Logger logger = LoggerFactory.getLogger(SimpleApp.class);
+    private static final Logger logger = LoggerFactory.getLogger(SimpleSparkCoreApp.class);
 
     private static final long serialVersionUID = 651154131299369784L;
 
 
     public static void main(String[] args) throws ParseException, InterruptedException, IOException {
-        new SimpleApp().execute(getSparkMasterUrl(args), getAppName(args));
+        new SimpleSparkCoreApp().execute(getSparkMasterUrl(args), getAppName(args));
     }
 
 
-    public SimpleApp() {
+    public SimpleSparkCoreApp() {
 
     }
 

@@ -19,8 +19,10 @@ spark_master_port: 7077
 spark_master_host_port: "spark://{{spark_master_hostname}}:{{spark_master_port}}"
 spark_slaves: |
   nodelab3
+  nodelab1
 spark_master_ip: 192.168.7.152
 spark_slave1_ip: 192.168.7.153
+spark_slave2_ip: 192.168.7.151
 
 spark_user: spark
 spark_group: spark
@@ -37,8 +39,9 @@ kafka_hosts: ["kafka1:9092"]
 
 ###common
 hosts: |
-  {{spark_master_ip}} nodelab2
-  {{spark_slave1_ip}} nodelab3
+  192.168.7.151 nodelab1
+  192.168.7.152 nodelab2
+  192.168.7.153 nodelab3
   {{ kafka1_host }} kafka1
   {{ zk1_host }} zk1
   {{ zk2_host }} zk2

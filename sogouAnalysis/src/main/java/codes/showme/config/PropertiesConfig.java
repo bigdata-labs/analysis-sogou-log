@@ -15,6 +15,7 @@ public class PropertiesConfig implements Configuration {
     public PropertiesConfig() {
         InputStream in = getClass().getResourceAsStream("/env.properties");
         try {
+
             properties.load(in);
         } catch (IOException e) {
             throw new LoadSogouAppConfigFromPropertiesException(e);

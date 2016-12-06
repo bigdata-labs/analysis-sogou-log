@@ -5,6 +5,7 @@
     - ./vars/base-env.yml
   vars:
     isUseWordcountFile: "true"
+    app_version: "2.0-SNAPSHOT"
   tasks:
     - name: copy wordcount.txt
       copy:
@@ -17,41 +18,62 @@
 
     - name: copy jar to spark
       copy:
-        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT.jar"
-        dest: "{{spark_home}}/sogou-2.0-SNAPSHOT.jar"
+        src: "../sogouAnalysis/target/sogou-{{app_version}}-jar-with-dependencies.jar"
+        dest: "{{spark_home}}/jars/"
         owner: "{{spark_user}}"
         group: "{{spark_group}}"
         force: true
 
-    - name: copy dependencies jars to spark
+    - name: delete jar
+      file:
+        path: "{{spark_home}}/sogou-{{app_version}}.jar"
+        state: absent
+
+    - name: copy jar to spark
       copy:
-        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
-        dest: "{{spark_home}}/jars/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        src: "../sogouAnalysis/target/sogou-{{app_version}}.jar"
+        dest: "{{spark_home}}/sogou-{{app_version}}.jar"
         owner: "{{spark_user}}"
         group: "{{spark_group}}"
+        force: true
+
+    # - name: copy dependencies jars to spark
+    #   copy:
+    #     src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+    #     dest: "{{spark_home}}/jars/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+    #     owner: "{{spark_user}}"
+    #     group: "{{spark_group}}"
 
 - hosts: nodelab3
   sudo: yes
   vars_files:
     - ./vars/base-env.yml
+  vars:
+    app_version: "2.0-SNAPSHOT"
   tasks:
     - name: copy jar to spark
       copy:
-        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT.jar"
-        dest: "{{spark_home}}/sogou-2.0-SNAPSHOT.jar"
+        src: "../sogouAnalysis/target/sogou-{{app_version}}-jar-with-dependencies.jar"
+        dest: "{{spark_home}}/jars/"
         owner: "{{spark_user}}"
         group: "{{spark_group}}"
         force: true
 
-    - name: copy dependencies jars to spark
+    - name: delete jar
+      file:
+        path: "{{spark_home}}/sogou-{{app_version}}.jar"
+        state: absent
+
+    - name: copy jar to spark
       copy:
-        src: "../sogouAnalysis/target/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
-        dest: "{{spark_home}}/jars/sogou-2.0-SNAPSHOT-jar-with-dependencies.jar"
+        src: "../sogouAnalysis/target/sogou-{{app_version}}.jar"
+        dest: "{{spark_home}}/sogou-{{app_version}}.jar"
         owner: "{{spark_user}}"
         group: "{{spark_group}}"
         force: true
 
-    - name: submit
+
+    - name: submit "{{ip}}"
       become: true
       become_user: "{{spark_user}}"
-      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SimpleApp --master {{spark_master_host_port}} --deploy-mode client --executor-memory 1G file://{{spark_home}}/sogou-2.0-SNAPSHOT.jar"
+      shell: "export SPARK_LOCAL_IP=192.168.7.151;{{spark_home}}/bin/spark-submit --class codes.showme.SogouLogKafkaSourceAnalysis --master {{spark_master_host_port}} --deploy-mode cluster --executor-memory 1G --executor-cores 2 file://{{spark_home}}/sogou-{{app_version}}.jar -name kafka_stream"

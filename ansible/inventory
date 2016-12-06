@@ -21,4 +21,5 @@
 192.168.7.152 ip=192.168.7.152 spark_is_master="true"
 
 [spark_slaves]
-192.168.7.153 ip=192.168.7.153
+192.168.7.153 ip=192.168.7.153 spark_is_slave="true"
+192.168.7.151 ip=192.168.7.151 spark_is_slave="true"
