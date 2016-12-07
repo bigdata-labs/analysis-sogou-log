@@ -70,13 +70,12 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
 
         JavaDStream<MessageAndMetadata> unionStreams = ReceiverLauncher.launch(
                 jsc, props, numberOfReceivers, StorageLevel.MEMORY_ONLY());
-        unionStreams.print();
         System.out.println("=======================2");
 
         //Get the Max offset from each RDD Partitions. Each RDD Partition belongs to One Kafka Partition
         JavaPairDStream<Integer, Iterable<Long>> partitonOffset = ProcessedOffsetManager
                 .getPartitionOffset(unionStreams);
-        partitonOffset.print();
+
         System.out.println("=================    3");
 
         //Start Application Logic
@@ -88,9 +87,10 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
             List<String> lines = Lists.newArrayList();
             for (MessageAndMetadata messageAndMetadata : rddList) {
                 lines.add(messageAndMetadata.getConsumer());
+                System.out.println("0000000000000000000000000000000000000000000000000000000000000000000000000000");
                 System.out.println(messageAndMetadata.getConsumer() + " -----  " + messageAndMetadata.getKey());
-            }
 
+            }
 
             return;
         });
@@ -99,7 +99,7 @@ public class SogouLogKafkaSourceAnalysis implements Serializable {
         //End Application Logic
 
         //Persists the Max Offset of given Kafka Partition to ZK
-//        ProcessedOffsetManager.persists(partitonOffset, props);
+        ProcessedOffsetManager.persists(partitonOffset, props);
         jsc.start();
         jsc.awaitTermination();
         System.out.println("3------------------------------------------");

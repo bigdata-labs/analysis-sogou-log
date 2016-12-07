@@ -9,6 +9,9 @@ import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.api.java.JavaInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.KafkaUtils;
+import org.apache.spark.streaming.kafka010.LocationStrategies;
 //import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 //import org.apache.spark.streaming.kafka010.KafkaUtils;
 //import org.apache.spark.streaming.kafka010.LocationStrategies;
@@ -52,12 +55,11 @@ public class SimpleSparkStreamApp {
         // topic count map for kafka consumer
         Collection<String> topics = Arrays.asList("sogou", "topicB");
 
-        final JavaInputDStream<ConsumerRecord<String, String>> stream = null;
-//                KafkaUtils.createDirectStream(
-//                        streamingContext,
-//                        LocationStrategies.PreferConsistent(),
-//                        ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams)
-//                );
+        final JavaInputDStream<ConsumerRecord<String, String>> stream =  KafkaUtils.createDirectStream(
+                        streamingContext,
+                        LocationStrategies.PreferConsistent(),
+                        ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams)
+                );
 
         JavaDStream<String> lines = stream.map(new Function<ConsumerRecord<String, String>, String>() {
             @Override
