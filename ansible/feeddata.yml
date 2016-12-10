@@ -1,0 +1,11 @@
+---
+- hosts: nodelab2
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  tasks:
+    - name: mkdir nginx folder
+      file: path="/var/log/sogou/" state=directory mode="0666"
+
+    - name: unarchive access.log
+      unarchive: src="./files/SogouQ.log.zip" dest="/var/log/sogou/" mode="0666"

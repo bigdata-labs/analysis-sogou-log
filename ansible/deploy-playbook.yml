@@ -44,7 +44,7 @@
     #     owner: "{{spark_user}}"
     #     group: "{{spark_group}}"
 
-- hosts: nodelab3
+- hosts: nodelab1
   sudo: yes
   vars_files:
     - ./vars/base-env.yml
@@ -76,4 +76,4 @@
     - name: submit "{{ip}}"
       become: true
       become_user: "{{spark_user}}"
-      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SimpleSparkStreamApp --master {{spark_master_host_port}} --deploy-mode cluster --executor-memory 1G --executor-cores 1 file://{{spark_home}}/sogou-{{app_version}}.jar -name kafka_stream"
+      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SimpleSparkStreamApp --master {{spark_master_host_port}} --deploy-mode cluster --executor-memory 1G file://{{spark_home}}/sogou-{{app_version}}.jar -name kafka_stream"
