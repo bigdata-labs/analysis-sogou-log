@@ -7,15 +7,6 @@
     isUseWordcountFile: "true"
     app_version: "2.0-SNAPSHOT"
   tasks:
-    - name: copy wordcount.txt
-      copy:
-        src: "./files/wordcount.txt"
-        dest: "{{spark_home}}/wordcount.txt"
-        owner: "{{spark_user}}"
-        group: "{{spark_group}}"
-        force: true
-      when: isUseWordcountFile == "true"
-
     - name: copy jar to spark
       copy:
         src: "../sogouAnalysis/target/sogou-{{app_version}}-jar-with-dependencies.jar"
@@ -76,4 +67,4 @@
     - name: submit "{{ip}}"
       become: true
       become_user: "{{spark_user}}"
-      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SimpleSparkStreamApp --master {{spark_master_host_port}} --deploy-mode cluster --executor-memory 1G file://{{spark_home}}/sogou-{{app_version}}.jar -name kafka_stream"
+      shell: "export SPARK_LOCAL_IP={{ip}};{{spark_home}}/bin/spark-submit --class codes.showme.SogouPersona --master {{spark_master_host_port}} --deploy-mode cluster --executor-memory 1G file://{{spark_home}}/sogou-{{app_version}}.jar -name WarmUpApp"

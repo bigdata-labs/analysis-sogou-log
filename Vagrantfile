@@ -32,7 +32,7 @@ Vagrant.configure(2) do |config|
      machine.vm.provider "virtualbox" do |node|
          node.name = "nodelab2"
          node.memory = 3048
-         node.cpus = 4
+         node.cpus = 2
      end
     end
 
@@ -44,9 +44,20 @@ Vagrant.configure(2) do |config|
       machine.vm.provider "virtualbox" do |node|
           node.name = "nodelab3"
           node.memory = 3048
-          node.cpus = 4
+          node.cpus = 2
       end
      end
+
+     config.vm.define "nodelab4" do |machine|
+       machine.vm.box = machine_box
+       machine.vm.hostname = "nodelab4"
+       machine.vm.network "private_network", ip: "192.168.7.154"
+       machine.vm.provider "virtualbox" do |node|
+           node.name = "nodelab4"
+           node.memory = 3048
+           node.cpus = 2
+       end
+      end
 
 
 

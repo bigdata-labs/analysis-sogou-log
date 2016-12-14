@@ -15,7 +15,6 @@ public class PropertiesConfig implements Configuration {
     public PropertiesConfig() {
         InputStream in = getClass().getResourceAsStream("/env.properties");
         try {
-
             properties.load(in);
         } catch (IOException e) {
             throw new LoadSogouAppConfigFromPropertiesException(e);
@@ -28,6 +27,31 @@ public class PropertiesConfig implements Configuration {
 
     public String getSparkMasterURL() {
         return properties.getProperty("spark_master_url");
+    }
+
+    @Override
+    public String getSparkCheckpoint() {
+        return properties.getProperty("/tmp/log-analyzer-streaming");
+    }
+
+    @Override
+    public String getRedisHost() {
+        return properties.getProperty("redis_host");
+    }
+
+    @Override
+    public String getKafkaBootstrapServers() {
+        return properties.getProperty("kafka.bootstrap.servers");
+    }
+
+    @Override
+    public String getKafkaAutoOffsetReset() {
+        return properties.getProperty("kafka.auto.offset.reset");
+    }
+
+    @Override
+    public boolean getKafkaEnableAutoCommit() {
+        return Boolean.valueOf(properties.getProperty("enable.auto.commit", "false"));
     }
 
     public Properties getProperties() {

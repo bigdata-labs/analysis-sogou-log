@@ -42,7 +42,3 @@
     - install
     - filebeat
     - config
-
-- include: "./test.yml"
-  tags:
-    - filebeat

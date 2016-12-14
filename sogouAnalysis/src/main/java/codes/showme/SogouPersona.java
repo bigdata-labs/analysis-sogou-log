@@ -1,5 +1,7 @@
 package codes.showme;
 
+import codes.showme.config.Configuration;
+import codes.showme.config.PropertiesConfig;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.lang3.StringUtils;
@@ -18,43 +20,50 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 import scala.Tuple2;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.BiFunction;
 
 
 /**
  * Created by jack on 12/2/16.
  */
-public class SimpleSparkStreamApp {
+public class SogouPersona {
+    private static final Logger logger = LoggerFactory.getLogger(SogouPersona.class);
 
+    private static Configuration configuration = new PropertiesConfig();
 
     public static void main(String[] args) throws InterruptedException {
 
         SparkConf conf = new SparkConf()
-                .setAppName("Spark Streaming")
-                .set("spark.driver.allowMultipleContexts", "true")
-                .setMaster("spark://192.168.7.152:7077");
+                .setAppName(configuration.getAppName())
+                .setMaster(configuration.getSparkMasterURL());
+
         // create streaming context
         JavaStreamingContext streamingContext = new JavaStreamingContext(conf, Durations.seconds(10));
 
         // Checkpointing must be enabled to use the updateStateByKey function.
-        streamingContext.checkpoint("/tmp/log-analyzer-streaming");
+        streamingContext.checkpoint(configuration.getSparkCheckpoint());
 
         Map<String, Object> kafkaParams = new HashMap<>();
-        kafkaParams.put("bootstrap.servers", "192.168.7.151:9092");
+        kafkaParams.put("bootstrap.servers", configuration.getKafkaBootstrapServers());
         kafkaParams.put("key.deserializer", StringDeserializer.class);
         kafkaParams.put("value.deserializer", StringDeserializer.class);
         kafkaParams.put("group.id", "use_a_separate_group_id_for_each_stream");
 //        kafkaParams.put("auto.offset.reset", "latest"); // for prod
-        kafkaParams.put("auto.offset.reset", "earliest"); // for debug
-        kafkaParams.put("enable.auto.commit", false);
+        kafkaParams.put("auto.offset.reset", configuration.getKafkaAutoOffsetReset()); // for debug
+        kafkaParams.put("enable.auto.commit", configuration.getKafkaEnableAutoCommit());
+
+        System.out.println("--------------------");
+        System.out.println(configuration.getRedisHost());
 
         // topic count map for kafka consumer
-        Collection<String> topics = Arrays.asList("sogou", "topicB");
+        Collection<String> topics = Arrays.asList("sogou");
 
         final JavaInputDStream<ConsumerRecord<String, String>> stream = KafkaUtils.createDirectStream(
                 streamingContext,
@@ -69,12 +78,13 @@ public class SimpleSparkStreamApp {
             }
         });
 
-        // 00:00:26	9975666857142764	[电脑创业]	10 7	url
         JavaDStream<SearchRecord> searchRecords = lines.map(new Function<String, SearchRecord>() {
             @Override
             public SearchRecord call(String line) throws Exception {
                 try {
                     if (StringUtils.isNotEmpty(line)) {
+                        System.out.println("-**************");
+                        System.out.println(line);
                         Map<String, Object> map = JSON.parseObject(line, new TypeReference<Map<String, Object>>() {
                         });
                         if (map != null && map.get("message") != null) {
@@ -92,8 +102,7 @@ public class SimpleSparkStreamApp {
                         }
                     }
                 } catch (Exception e) {
-                    // todo
-                    System.out.println(e);
+                    logger.error("", e);
                 }
                 return null;
             }
@@ -110,45 +119,33 @@ public class SimpleSparkStreamApp {
             for (String word : v1) {
                 if (word_count.containsKey(word)) {
                     word_count.put(word, word_count.get(word) + 1);
-                }else {
+                } else {
                     word_count.put(word, 1);
                 }
             }
             return word_count;
         });
 
-        userid_querywordcountmap.print();
-
-
         userid_querywordcountmap.foreachRDD(new VoidFunction2<JavaPairRDD<String, Map<String, Integer>>, Time>() {
             @Override
             public void call(JavaPairRDD<String, Map<String, Integer>> v1, Time v2) throws Exception {
-                v1.foreachPartition(tuple2Iterator -> tuple2Iterator.forEachRemaining(stringMapTuple2 -> {
-                    Jedis jedis = RedisConnection.getJedis();
-                    jedis.sadd("userid", stringMapTuple2._1());
-                    System.out.println("=========***********************");
-                    System.out.println(stringMapTuple2._1() + " " + stringMapTuple2._2().keySet().size());
-                    jedis.close();
-                }));
+                v1.foreachPartition(tuple2Iterator -> {
+                    tuple2Iterator.forEachRemaining(stringMapTuple2 -> {
+                        Jedis jedis = RedisConnection.getJedis();
+                        Pipeline pipeline = jedis.pipelined();
+                        System.out.println("pipeline" + pipeline);
+                        for (Map.Entry<String, Integer> stringIntegerEntry : stringMapTuple2._2().entrySet()) {
+                            pipeline.zincrby(stringMapTuple2._1(), stringIntegerEntry.getValue(), stringIntegerEntry.getKey());
+                            System.out.println(stringIntegerEntry.getValue());
+                        }
+                        pipeline.sync();
+                        jedis.close();
+                    });
+
+                });
             }
         });
 
-
-//        userid_querywordcountmap.foreachRDD(new VoidFunction2<JavaPairRDD<String, Map<String, Integer>>, Time>() {
-//            @Override
-//            public void call(JavaPairRDD<String, Map<String, Integer>> v1, Time v2) throws Exception {
-////                RedisConnection.jedis.zincrby()
-//                RedisConnection.jedis.sadd("userid", v1.);
-//                System.out.println("=========***********************");
-//                System.out.println(v1.keys().first());
-//            }
-//        });
-
-        // The processing can be manually stopped using jssc.stop();
-        // just stop spark context jssc.stop(false);
-
-        // Print the first ten elements of each RDD generated in this DStream to the console
-        // Start the computation
         streamingContext.start();
         streamingContext.awaitTermination();
 
@@ -157,10 +154,8 @@ public class SimpleSparkStreamApp {
 
     public static class RedisConnection implements Serializable {
         private static final long serialVersionUID = 5353378237055376883L;
-//        public static final Jedis jedis = new Jedis("192.168.7.152");
-
         public static Jedis getJedis() {
-            return new Jedis("192.168.7.152");
+            return new Jedis(configuration.getRedisHost());
         }
     }
 }
