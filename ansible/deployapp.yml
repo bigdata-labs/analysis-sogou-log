@@ -1,0 +1,7 @@
+---
+- hosts: nodelab4
+  sudo: yes
+  vars_files:
+    - ./vars/base-env.yml
+  roles:
+    - app

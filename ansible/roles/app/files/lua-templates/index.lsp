@@ -4,7 +4,7 @@ layout = "layouts/default.lsp"
 
 local  pageindex = ngx.var.pageindex
 local pageszie = ngx.var.pagesize
-local  title = "博客标题"
+local  title = "index"
 
 
 local red = redis:new()
@@ -15,7 +15,7 @@ if not ok then
    return
 end
 
-local keyList, err = red:scan(0)
+local keyList, err = red:keys("*")
 
 %}
 <div>

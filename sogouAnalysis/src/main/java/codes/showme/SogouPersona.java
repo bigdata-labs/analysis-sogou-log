@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Transaction;
 import scala.Tuple2;
 
 import java.io.Serializable;
@@ -59,9 +60,6 @@ public class SogouPersona {
         kafkaParams.put("auto.offset.reset", configuration.getKafkaAutoOffsetReset()); // for debug
         kafkaParams.put("enable.auto.commit", configuration.getKafkaEnableAutoCommit());
 
-        System.out.println("--------------------");
-        System.out.println(configuration.getRedisHost());
-
         // topic count map for kafka consumer
         Collection<String> topics = Arrays.asList("sogou");
 
@@ -83,8 +81,6 @@ public class SogouPersona {
             public SearchRecord call(String line) throws Exception {
                 try {
                     if (StringUtils.isNotEmpty(line)) {
-                        System.out.println("-**************");
-                        System.out.println(line);
                         Map<String, Object> map = JSON.parseObject(line, new TypeReference<Map<String, Object>>() {
                         });
                         if (map != null && map.get("message") != null) {
@@ -132,13 +128,12 @@ public class SogouPersona {
                 v1.foreachPartition(tuple2Iterator -> {
                     tuple2Iterator.forEachRemaining(stringMapTuple2 -> {
                         Jedis jedis = RedisConnection.getJedis();
-                        Pipeline pipeline = jedis.pipelined();
-                        System.out.println("pipeline" + pipeline);
+                        Transaction transaction = jedis.multi();
                         for (Map.Entry<String, Integer> stringIntegerEntry : stringMapTuple2._2().entrySet()) {
-                            pipeline.zincrby(stringMapTuple2._1(), stringIntegerEntry.getValue(), stringIntegerEntry.getKey());
+                            transaction.zincrby(stringMapTuple2._1(), stringIntegerEntry.getValue(), stringIntegerEntry.getKey());
                             System.out.println(stringIntegerEntry.getValue());
                         }
-                        pipeline.sync();
+                        transaction.exec();
                         jedis.close();
                     });
 
