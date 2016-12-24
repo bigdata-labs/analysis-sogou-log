@@ -1,5 +1,5 @@
 ---
-- hosts: nodelab2
+- hosts: nodelab3
   sudo: yes
   vars_files:
     - ./vars/base-env.yml

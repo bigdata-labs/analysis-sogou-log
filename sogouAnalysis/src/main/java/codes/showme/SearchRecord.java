@@ -1,6 +1,12 @@
 package codes.showme;
 
+import org.apdplat.word.WordSegmenter;
+import org.apdplat.word.segmentation.Word;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by jack on 12/10/16.
@@ -67,6 +73,14 @@ public class SearchRecord implements Serializable {
 
     public int getClickOrder() {
         return clickOrder;
+    }
+
+    public List<String> getWordsAfterSegment(){
+        List<Word> words = WordSegmenter.seg(queryWord);
+        if (words != null) {
+            return words.stream().map(w -> w.getText()).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
 
