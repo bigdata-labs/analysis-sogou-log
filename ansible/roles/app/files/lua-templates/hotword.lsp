@@ -20,7 +20,7 @@ local tags, err = red:zrevrange("hotwordlist", 0, 100, "withscores")
 <div>
 {% for i = 1,  #tags, 2 do %}
 
-     tag: {* tags[i] *} score: {* tags[i+1] *} </br>
+     query: {* tags[i] *} count: {* tags[i+1] *} </br>
 
 {% end %}<br/>
 
