@@ -59,7 +59,7 @@ After analysing by Spark Streaming, we'll get 2 lists: user list and hot word li
 
 1. access hot word list: http://192.168.7.154/hotword.lsp
 
-	![hot-world-list](docs/images/hot-world-list.png)
+	![hot-world-list](docs/images/hot-word-list.png)
 
 
 
